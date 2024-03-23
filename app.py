@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, request, redirect, render_template, session, url_for
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User, Feedback
 from forms import FeedbackForm, RegisterForm, LoginForm, DeleteForm
@@ -103,7 +103,7 @@ def remove_user_feedback(username):
     return redirect('/login')
 
 
-@app.route('/users/<username>/feedback/add', methods=["GET", "POST"])
+@app.route('/users/<username>/feedback/new', methods=["GET", "POST"])
 def add_feedback(username):
     '''Display feedback form and process'''
 
@@ -124,8 +124,8 @@ def add_feedback(username):
         db.session.add(feedback)
         db.session.commit()
 
-        return redirect(f'/users/{feedback.username}')
-
+        # return redirect(f'/users/{feedback.username}')
+        return redirect(url_for('show_user', username=feedback.username))
     else:
         return render_template('feedback/new.html', form=form)
 
@@ -143,25 +143,11 @@ def edit_feedback(feedback_id):
     if form.validate_on_submit():
         feedback.title = form.title.data
         feedback.content = form.content.data
-
         db.session.commit()
 
-        return redirect(f'users/{feedback.username}')
+       
+        return redirect(url_for('show_user', username=feedback.username))
    
     return render_template('feedback/edit.html', form=form, feedback=feedback)
 
-@app.route('/feedback/<int:feedback_id>/delete', methods=["POST"])
-def delete_feedback(feedback_id):
 
-    feedback = Feedback.query.get(feedback_id)
-
-    if "username" not in session != feedback.username != session["username"]:
-        raise Unauthorized()
-    
-    form = DeleteForm()
-    
-    if form.validate_on_submit():
-        db.session.delete(feedback)
-        db.session.commit()
-
-    return redirect(f'/users/{feedback.username}')
